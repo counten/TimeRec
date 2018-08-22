@@ -1,6 +1,7 @@
 # TimeReg
 
- This is a simple time recorgnize model base on regix
+ Time entity recognition tool based on regular expression.
+ 基于正则表达式的中文时间实体识别工具
 
 
 ## Install
