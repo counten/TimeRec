@@ -64,7 +64,10 @@ class TimeNormalizer:
         # 时间上下文： 前一个识别出来的时间会是下一个时间的上下文，
         # 用于处理：周六3点到5点这样的多个时间的识别，第二个5点应识别到是周六的。
         for i in range(match_count):
-            time_unit = TimeUnit(str_map_arr[i], self.time_base, self.old_time_base)
+            clean_record = False
+            if i == 0:
+                clean_record = True
+            time_unit = TimeUnit(str_map_arr[i], self.time_base, self.old_time_base, clean_record)
             if time_unit.time != -28800000:
                 self.time_token.append(time_unit)
 

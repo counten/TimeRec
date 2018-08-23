@@ -12,6 +12,10 @@ from src.range_time_enum import RangeTimeEnum
 class TimePoint:
     unit = [-1, -1, -1, -1, -1, -1]
 
+    def clean(self):
+        for i in range(len(self.unit)):
+            self.unit[i] = -1
+
     def __copy__(self):
         res = TimePoint()
         for i in range(len(self.unit)):
@@ -33,11 +37,13 @@ class TimeUnit:
     _tp_origin = TimePoint
 
     # 时间表达式单元构造方法 该方法作为时间表达式单元的入口，将时间表达式字符串传入
-    def __init__(self, exp_time: str, time_base: DateUtil, old_time_base: DateUtil):
+    def __init__(self, exp_time: str, time_base: DateUtil, old_time_base: DateUtil, clean_tp: bool):
         self.time_expression = exp_time
         self.time_base = time_base
         self.old_time_base = old_time_base
         self._tp = TimePoint()
+        if clean_tp:
+            self._tp.clean()
         self.time_normalization()
 
     # 格式化时间
