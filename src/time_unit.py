@@ -30,17 +30,13 @@ class TimeUnit:
     time_origin = None
     time = ""
     is_all_day_time = True
-    is_first_time_solve_context = True
     time_base = DateUtil
-    old_time_base = DateUtil
     _tp = TimePoint
-    _tp_origin = TimePoint
 
     # 时间表达式单元构造方法 该方法作为时间表达式单元的入口，将时间表达式字符串传入
-    def __init__(self, exp_time: str, time_base: DateUtil, old_time_base: DateUtil, clean_tp: bool):
+    def __init__(self, exp_time: str, time_base: DateUtil, clean_tp: bool):
         self.time_expression = exp_time
         self.time_base = time_base
-        self.old_time_base = old_time_base
         self._tp = TimePoint()
         if clean_tp:
             self._tp.clean()
@@ -59,9 +55,7 @@ class TimeUnit:
         self.normal_minute()
         self.normal_second()
         self.normal_total()
-        self.modify_time_base()
 
-        self._tp_origin = self._tp.__copy__()
         time_grid = self.time_base.get_time_list()
         t_unit_p = 5
         while t_unit_p >= 0 > self._tp.unit[t_unit_p]:
@@ -119,7 +113,6 @@ class TimeUnit:
         m = re.search(pattern, self.time_expression)
         if m is not None:
             self._tp.unit[1] = int(m.group())
-            self.prefer_future(1)
 
     # 月-日 兼容模糊写法
     # 该方法识别时间表达式单元的月、日字段
@@ -136,23 +129,20 @@ class TimeUnit:
                 date = str_in[start:]
                 self._tp.unit[1] = int(month)
                 self._tp.unit[2] = int(date)
-                self.prefer_future(1)
 
     # 日 - 规范化方法
     def normal_day(self):
-        pattern = re.compile(r"((?<!\d))([0-3][0-9]|[1-9])(?=(日|号))")
+        pattern = re.compile(r"((?<!\d))([0-3][0-9]|[1-9])(?=[日|号])")
         m = re.search(pattern, self.time_expression)
         if m is not None:
             self._tp.unit[2] = int(m.group())
-            self.prefer_future(2)
 
     # 时 - 规范化方法
     def normal_hour(self):
-        pattern = re.compile(r"(?<![周|星期])([0-2]?[0-9])(?=(点|时))")
+        pattern = re.compile(r"(?<![周|星期])([0-2]?[0-9])(?=[点|时])")
         match = re.search(pattern, self.time_expression)
         if match is not None:
             self._tp.unit[3] = int(match.group())
-            self.prefer_future(3)
             self.is_all_day_time = False
 
         # 对关键字：早（包含早上 / 早晨 / 早间），上午，中午, 午间, 下午, 午后, 晚上, 傍晚, 晚间, 晚, pm, PM的正确时间计算
@@ -166,7 +156,6 @@ class TimeUnit:
             if m_s1 is not None:
                 if self._tp.unit[3] == -1:
                     self._tp.unit[3] = hour_time
-                self.prefer_future(3)
                 self.is_all_day_time = False
 
         pattern = re.compile(r"凌晨")
@@ -188,7 +177,6 @@ class TimeUnit:
                 if temp_unit == 1:
                     temp_unit = hour_time
                 self._tp.unit[3] = temp_unit
-                self.prefer_future(3)
                 self.is_all_day_time = False
 
         pattern = re.compile(r"(中午)|(午间)")
@@ -208,7 +196,6 @@ class TimeUnit:
             str_in = match.group()
             if not str_in == "":
                 self._tp.unit[4] = int(str_in)
-                self.prefer_future(4)
                 self.is_all_day_time = False
 
         # 时刻处理子函数
@@ -216,7 +203,6 @@ class TimeUnit:
             m = re.search(p, self.time_expression)
             if m is not None:
                 self._tp.unit[4] = q * 15
-                self.prefer_future(4)
                 self.is_all_day_time = False
 
         pattern = re.compile(r"(?<=[点时])[1一]刻(?!钟)")
@@ -252,20 +238,18 @@ class TimeUnit:
                 tmp_parser = tmp_target.split(":")
                 self._tp.unit[3] = int(tmp_parser[0])
                 self._tp.unit[4] = int(tmp_parser[1])
-        self.prefer_future(3)
         self.is_all_day_time = False
 
         # 增加了:固定形式时间表达式的 中午,午间,下午,午后,晚上,傍晚,晚间,晚,pm,PM 的正确时间计算，规约同上
         def sub_func1(p, hour_time, edge):
             m = re.search(p, self.time_expression)
             if m is not None:
-                temp_unit = self._tp.unit[3]
-                if 0 <= temp_unit <= edge:
-                    temp_unit += 12
-                if temp_unit == -1:
-                    temp_unit = hour_time
-                self._tp.unit[3] = temp_unit
-                self.prefer_future(3)
+                t_unit = self._tp.unit[3]
+                if 0 <= t_unit <= edge:
+                    t_unit += 12
+                if t_unit == -1:
+                    t_unit = hour_time
+                self._tp.unit[3] = t_unit
                 self.is_all_day_time = False
 
         pattern = re.compile(r"(中午)|(午间)")
@@ -284,16 +268,16 @@ class TimeUnit:
             if temp_unit == -1:
                 # 增加对没有明确时间点，只写了“中午 / 午间”这种情况的处理
                 temp_unit = RangeTimeEnum.night
-            self.prefer_future(3)
+            self._tp.unit[3] = temp_unit
             self.is_all_day_time = False
 
         def sub_func2(p, sp):
-            match = re.search(p, self.time_expression)
-            if match is not None:
-                tmp_parser = match.group().split(sp)
-                self._tp.unit[0] = int(tmp_parser[0])
-                self._tp.unit[1] = int(tmp_parser[1])
-                self._tp.unit[2] = int(tmp_parser[2])
+            m = re.search(p, self.time_expression)
+            if m is not None:
+                t_parser = m.group().split(sp)
+                self._tp.unit[0] = int(t_parser[0])
+                self._tp.unit[1] = int(t_parser[1])
+                self._tp.unit[2] = int(t_parser[2])
 
         pattern = re.compile(r"[0-9]?[0-9]?[0-9]{2}-((10)|(11)|(12)|([1-9]))-((?<!\\d))([0-3][0-9]|[1-9])")
         sub_func2(pattern, "-")
@@ -390,7 +374,7 @@ class TimeUnit:
 
     # 设置当前时间相关的时间表达式
     def normal_cur_related(self):
-        time = self.old_time_base.__copy__()
+        time = self.time_base.__copy__()
         flag1 = False
         flag2 = False
         flag3 = False
@@ -501,12 +485,3 @@ class TimeUnit:
             self._tp.unit[1] = time_list[1]
         if flag3:
             self._tp.unit[2] = time_list[2]
-
-    # 更新timeBase使之具有上下文关联性
-    def modify_time_base(self):
-        time = self.time_base.__copy__()
-        # TODO 修改 normalizer 的timebase
-
-    # 处理倾向于未来时间的情况
-    def prefer_future(self, check_time_index):
-        return ''

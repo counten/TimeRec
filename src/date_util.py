@@ -61,9 +61,3 @@ class DateUtil(CommonDateUtil):
         res.append(local_time.tm_min)
         res.append(local_time.tm_sec)
         return res
-
-
-if __name__ == '__main__':
-    date = DateUtil(time.time())
-    date.change_week(1, 6)
-    print(date.get_time())

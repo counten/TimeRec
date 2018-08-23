@@ -13,9 +13,7 @@ from src.time_unit import TimeUnit
 
 
 class TimeNormalizer:
-    serial_version_UID = 463541045644656392
     time_base = None
-    old_time_base = None
     patterns = None
     target = None
     time_token = list()
@@ -67,7 +65,7 @@ class TimeNormalizer:
             clean_record = False
             if i == 0:
                 clean_record = True
-            time_unit = TimeUnit(str_map_arr[i], self.time_base, self.old_time_base, clean_record)
+            time_unit = TimeUnit(str_map_arr[i], self.time_base, clean_record)
             if time_unit.time != -28800000:
                 self.time_token.append(time_unit)
 
@@ -77,7 +75,6 @@ class TimeNormalizer:
             self.time_token.clear()
         self.target = str_target
         self.time_base = DateUtil(time.time())
-        self.old_time_base = self.time_base
 
         self.pre_process()
         self.time_ex()
@@ -94,10 +91,11 @@ if __name__ == '__main__':
                  "昨天的表演",
                  "下午三点开会",
                  "明天上午8点到下午3点",
-                 "三天前"]
+                 "三天前",
+                 "去年三月到五月"]
     for query in test_list:
         res = tn.parse(query)
+        print(query)
         for r in res:
-            print(r.time_expression, r.time_norm, r.time)
+            print(r.time_expression, r.time)
         print("----------------------")
-    print(tn.time_token)
