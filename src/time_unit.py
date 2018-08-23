@@ -320,7 +320,7 @@ class TimeUnit:
                 return True
             return False
 
-        pattern = re.compile(r"\\d+(?=天[以之]?前)")
+        pattern = re.compile(r"\d+(?=天[以之]?前)")
         if c_day(pattern, -1):
             flag3 = True
 
@@ -368,11 +368,11 @@ class TimeUnit:
 
         pattern = re.compile(r"\d+(?=年[以之]?前)")
         if c_year(pattern, -1):
-            flag2 = True
+            flag1 = True
 
         pattern = re.compile(r"\d+(?=年[以之]?后)")
         if c_year(pattern, 1):
-            flag2 = True
+            flag1 = True
 
         time_list = time.get_time_list()
         if flag1 or flag2 or flag3:
@@ -485,7 +485,7 @@ class TimeUnit:
         pattern = re.compile(r"(?<=(下下[周|星期]))[1-7]?")
         if c_week(pattern, 2):
             flag3 = True
-        pattern = re.compile(r"(?<=((?<!(上|下))[周|星期]))[1-7]?")
+        pattern = re.compile(r"(?<=((?<![上|下|\d])[周|星期]))[1-7]?")
         if c_week(pattern, 0):
             flag3 = True
         time_list = time.get_time_list()
