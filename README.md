@@ -6,7 +6,7 @@
 
 
 ## Install
-
+Use like test.py.
 
 ## About
 
