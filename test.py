@@ -14,7 +14,15 @@ if __name__ == '__main__':
                  "去年三月到五月"]
     for query in test_list:
         res = tn.parse(query)
-        print(query)
+        print(query,":")
         for r in res:
             print(r.time_expression, r.time)
+        print("----------------------")
+
+    # 只是从句子提取关键词
+    for query in test_list:
+        res = tn.simple_parse(query)
+        print(query,":")
+        for i in range(len(res)):
+            print(res[i])
         print("----------------------")

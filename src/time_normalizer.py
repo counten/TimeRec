@@ -45,7 +45,6 @@ class TimeNormalizer:
     def time_ex(self):
         str_target = self.target
         it = re.finditer(self.patterns, str_target)
-        start = -1
         end = -1
         match_count = 0
         str_map_arr = dict()
@@ -69,6 +68,7 @@ class TimeNormalizer:
             if time_unit.time != -28800000:
                 self.time_token.append(time_unit)
 
+    # 从句子中提取出时间词，并转换为特定格式，包含时间推算等
     def parse(self, str_target):
         # 清除上次存储的结果
         if len(self.time_token) > 0:
@@ -79,3 +79,24 @@ class TimeNormalizer:
         self.pre_process()
         self.time_ex()
         return self.time_token
+
+    # 简单的从句子中提取出时间词。
+    # 返回值是一个map
+    def simple_parse(self, str_target):
+        str_target = StrPreProcess.del_keyword(str_target, r"\\s+")
+        # 清理语气助词
+        str_target = StrPreProcess.del_keyword(str_target, "[的]+")
+        it = re.finditer(self.patterns, str_target)
+        end = -1
+        match_count = 0
+        str_map_arr = dict()
+        for m in it:
+            start = m.start()
+            if end == start:
+                match_count -= 1
+                str_map_arr[match_count] = str_map_arr[match_count] + m.group()
+            else:
+                str_map_arr[match_count] = m.group()
+            end = m.end()
+            match_count += 1
+        return str_map_arr
